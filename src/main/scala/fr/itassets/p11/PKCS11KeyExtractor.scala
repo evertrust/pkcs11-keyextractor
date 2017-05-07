@@ -3,12 +3,12 @@ package fr.itassets.p11
 import java.io.StringWriter
 import java.security.Security
 
-import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
+import iaik.pkcs.pkcs11.objects.{ AESSecretKey, RSAPrivateKey, RSAPublicKey }
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants
 import iaik.pkcs.pkcs11._
 import iaik.pkcs.pkcs11.parameters.InitializationVectorParameters
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.io.pem.{PemObject, PemWriter}
+import org.bouncycastle.util.io.pem.{ PemObject, PemWriter }
 import scopt.OptionParser
 
 import scala.collection.mutable
@@ -23,19 +23,19 @@ object PKCS11KeyExtractor extends App {
   val parser = new OptionParser[PKCS11KeyExtractorConfig]("PKCS11KeyExtractor") {
     head("PKCS11KeyExtractor", "1.0")
     // Global Options
-    opt[String]('l', "library") required() valueName ("\"PKCS#11 Library Path\"") action { (x, c) => c.copy(pkcs11Lib = x) } text ("PKCS#11 Module Library Path (required)")
-    opt[Long]('s', "slot") required() valueName ("\"PKCS#11 Slot ID\"") action { (x, c) => c.copy(slotId = x) } validate { x => if (x >= 0) success else failure("Slot ID cannot be negative") } text ("PKCS#11 Slot ID (required)")
-    opt[String]('p', "password") required() valueName("\"PKCS#11 Slot Password\"") action { (x, c) => c.copy(slotPassword = x) } text("PKCS#11 Slot Password (required)")
-    opt[Unit]('v', "verbose") optional() action { (_, c) => c.copy(verbose = true) } text("Verbose Mode")
-    opt[Unit]('t', "test") optional() action { (_, c) => c.copy(test = true) } text("Test Mode")
-    opt[Unit]('f', "force") optional() action { (_, c) => c.copy(force = true) } text("Disregard the CKA_EXTRACTABLE attribute")
+    opt[String]('l', "library") required () valueName ("\"PKCS#11 Library Path\"") action { (x, c) => c.copy(pkcs11Lib = x) } text ("PKCS#11 Module Library Path (required)")
+    opt[Long]('s', "slot") required () valueName ("\"PKCS#11 Slot ID\"") action { (x, c) => c.copy(slotId = x) } validate { x => if (x >= 0) success else failure("Slot ID cannot be negative") } text ("PKCS#11 Slot ID (required)")
+    opt[String]('p', "password") required () valueName ("\"PKCS#11 Slot Password\"") action { (x, c) => c.copy(slotPassword = x) } text ("PKCS#11 Slot Password (required)")
+    opt[Unit]('v', "verbose") optional () action { (_, c) => c.copy(verbose = true) } text ("Verbose Mode")
+    opt[Unit]('t', "test") optional () action { (_, c) => c.copy(test = true) } text ("Test Mode")
+    opt[Unit]('f', "force") optional () action { (_, c) => c.copy(force = true) } text ("Disregard the CKA_EXTRACTABLE attribute")
   }
 
   // Parsing arguments
   parser.parse(args, PKCS11KeyExtractorConfig()) match {
     case Some(config) => {
 
-      println("[*] PKCS#11 Key Extractor - Release 0.9")
+      println("[*] PKCS#11 Key Extractor - Release 1.0")
 
       // Loading p11 module
       println(s"[*] Registering PKCS#11 Module '${config.pkcs11Lib}'")
@@ -79,7 +79,7 @@ object PKCS11KeyExtractor extends App {
         println(s"[*] Generating an in memory (CKA_TOKEN: FALSE) 256 bits AES key")
         val wrappingKey = generateWrappingKey(session)
 
-        privateKeys.foreach{ key =>
+        privateKeys.foreach { key =>
           println(s"[*] Extracting RSA Private Key (CKA_EXTRACTABLE: ${key.getExtractable.getBooleanValue}) with modulus '${key.getModulus.getByteArrayValue.map("%02x".format(_)).mkString(":").toUpperCase}'")
           if (config.verbose)
             println(s"[?] Key Information: ${key.toString}")
@@ -94,7 +94,7 @@ object PKCS11KeyExtractor extends App {
 
             // Decrypting Wrapped Key
             val decryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD)
-            val decryptInitializationVector = Array[Byte]( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            val decryptInitializationVector = Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             val decryptInitializationVectorParameters = new InitializationVectorParameters(decryptInitializationVector)
             decryptionMechanism.setParameters(decryptInitializationVectorParameters)
             session.decryptInit(decryptionMechanism, wrappingKey)
@@ -188,7 +188,7 @@ object PKCS11KeyExtractor extends App {
       privateKeyTemplate.getExtractable.setBooleanValue(true)
     session.findObjectsInit(privateKeyTemplate)
     def iterate: Unit = {
-      while(true) {
+      while (true) {
         val key = session.findObjects(1)
         if (key.length > 0)
           privateKeys += key(0).asInstanceOf[RSAPrivateKey]
@@ -243,6 +243,5 @@ object PKCS11KeyExtractor extends App {
     session.logout()
     session.closeSession()
   }
-
 
 }
