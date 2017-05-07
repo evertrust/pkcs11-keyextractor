@@ -3,7 +3,7 @@ PKCS#11 Key Extractor
 
 # Synopsis
 
-This tool allow extracting RSA private keys from [PKCS#11](http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.pdf) crypto devices (HSM, smartcard, token) when the CKA_EXTRACTABLE attribute is set to TRUE.
+This tool allows extracting RSA private keys from [PKCS#11](http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.pdf) crypto devices (HSM, smartcard, token) when the CKA_EXTRACTABLE attribute is set to TRUE.
 
 This tool is **not intended to be used to migrate cryptographic materials** and should be used for the unique purpose of verifying if an RSA private key can be exported from an HSM.
 
@@ -11,29 +11,29 @@ Basically, what is does is:
 * Opening a R/W session on a PKCS#11 token
 * List the RSA private key(s) with the CKA_ATTRIBUTE set to TRUE
 * Generate an in memory (CKA_TOKEN FALSE) AES 256 bits symmetric key
-* Wrap the RSA private key(s) using teh AES key
-* Export the RSA private key as PKCS#1 key in PEM format outside of the crypto device
+* Wrap / Unwrap (externally) the RSA private key(s) using this AES key
+* Export the RSA private key(s) as PKCS#1 key(s) in PEM format outside of the crypto device
 
-This tool is developped in Scala and uses the following Java libraries:
+This tool is developed in Scala and makes use of the following Java libraries:
 * [BouncyCastle](https://www.bouncycastle.org/)
 * [IAIK PKCS#11 Wrapper](http://jcewww.iaik.tu-graz.ac.at/sic/Products/Core_Crypto_Toolkits/PKCS_11_Wrapper)
 
 # Prerequisites
 
 To compile this tool you will need:
-* A JDK 8
-* sbt
+* [JDK 8](https://www.google.fr/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0ahUKEwiDqZu53d7TAhUGlxoKHfrgDQIQFggpMAA&url=http%3A%2F%2Fwww.oracle.com%2Ftechnetwork%2Fjava%2Fjavase%2Fdownloads%2Fjdk8-downloads-2133151.html&usg=AFQjCNEfygdKmZ1D2xJzvYIvnYbmmXWqsA)
+* [SBT](http://www.scala-sbt.org/)
 
 # Generating the tool
 
 Clone the github repository:
 ```
-git clone https://github.com/jjalvado/pkcs11-pke
+git clone https://github.com/jjalvado/pkcs11-keyextractor
 ```
 
 Generate the archive:
 ```
-cd pkcs11-pke
+cd pkcs11-keyextractor
 sbt packageZipTarball
 ```
 
@@ -49,6 +49,7 @@ tar xzvf pkcs-11-key-extractor-1.0.tgz
 # Usage
 
 ```
+./pkcs-11-key-extractor-1.0/bin/pkcs-11-key-extractor
 PKCS11KeyExtractor 1.0
 Usage: PKCS11KeyExtractor [options]
 
