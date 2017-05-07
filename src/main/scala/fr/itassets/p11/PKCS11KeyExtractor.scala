@@ -47,21 +47,21 @@ object PKCS11KeyExtractor extends App {
 
       // If test mode is enabled, generating test key pairs
       if (config.test) {
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE)")
         generateRSATestKeyPair(session, 2048, "EXTRACTABLE_NOWRAP_NOUNWRAP", true, false, false)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE)")
         generateRSATestKeyPair(session, 2048, "EXTRACTABLE_NOWRAP_UNWRAP", true, false, true)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE)")
         generateRSATestKeyPair(session, 2048, "EXTRACTABLE_WRAP_NOUNWRAP", true, true, false)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE)")
         generateRSATestKeyPair(session, 2048, "EXTRACTABLE_WRAP_UNWRAP", true, true, true)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE)")
         generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_NOWRAP_NOUNWRAP", false, false, false)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE)")
         generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_NOWRAP_UNWRAP", false, false, true)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE)")
         generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_WRAP_NOUNWRAP", false, true, false)
-        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE")
+        println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE)")
         generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_WRAP_UNWRAP", false, true, true)
       }
 
