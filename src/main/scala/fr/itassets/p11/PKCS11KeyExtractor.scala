@@ -5,6 +5,7 @@ import java.security.Security
 import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants
 import iaik.pkcs.pkcs11._
+import iaik.pkcs.pkcs11.parameters.InitializationVectorParameters
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import scopt.OptionParser
 
@@ -61,13 +62,17 @@ object PKCS11KeyExtractor extends App {
           println(s"[*] Found ${privateKeys.size} RSA private key(s) with CKA_EXTRACTABLE set to TRUE")
 
         // Generating a 256 bits AES wrap / unwrap key
-        println(s"[*] Generating an in memory (CKA_TOKEN: FALSE) 256 AES key")
+        println(s"[*] Generating an in memory (CKA_TOKEN: FALSE) 256 bits AES key")
         val wrappingKey = generateWrappingKey(session)
 
         privateKeys.foreach{ key =>
           println(s"[*] Extracting RSA Private Key (CKA_EXTRACTABLE: ${key.getExtractable.getBooleanValue}) with modulus '${key.getModulus.getByteArrayValue.map("%02x".format(_)).mkString(":").toUpperCase}'")
           val wrappedKey = try {
-            session.wrapKey(Mechanism.get(PKCS11Constants.CKM_RSA_PKCS), wrappingKey, key)
+            val encryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD)
+            val encryptInitializationVector = Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            val encryptInitializationVectorParameters = new InitializationVectorParameters(encryptInitializationVector)
+            encryptionMechanism.setParameters(encryptInitializationVectorParameters);
+            session.wrapKey(encryptionMechanism, wrappingKey, key)
           } catch {
             case e: Exception => println(s"[!] Error extracting private key: '${e.getMessage}'")
           }
