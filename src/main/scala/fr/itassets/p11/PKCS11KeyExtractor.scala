@@ -1,8 +1,8 @@
 package fr.itassets.p11
 
-import java.security.{KeyPair, KeyPairGenerator, Security}
+import java.security.Security
 
-import iaik.pkcs.pkcs11.objects.{RSAPrivateKey, RSAPublicKey}
+import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants
 import iaik.pkcs.pkcs11._
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -60,13 +60,9 @@ object PKCS11KeyExtractor extends App {
         else
           println(s"[*] Found ${privateKeys.size} RSA private key(s) with CKA_EXTRACTABLE set to TRUE")
 
-        // Generating a software RSA 2048 bits wrap / unwrap key pair
-        println(s"[*] Generating a wrapping software RSA keypair (2048 bits)")
-        val extractKeyPair = generateRSAKeypair(2048)
-
-        // Importing the public key into the token in memory
-        println(s"[*] Importing the wrapping public key into the token memory (CKA_TOKEN: FALSE)")
-        val wrappingKey = importWrappingKey(session, extractKeyPair.getPublic.asInstanceOf[java.security.interfaces.RSAPublicKey])
+        // Generating a 256 bits AES wrap / unwrap key
+        println(s"[*] Generating an in memory (CKA_TOKEN: FALSE) 256 AES key")
+        val wrappingKey = generateWrappingKey(session)
 
         privateKeys.foreach{ key =>
           println(s"[*] Extracting RSA Private Key (CKA_EXTRACTABLE: ${key.getExtractable.getBooleanValue}) with modulus '${key.getModulus.getByteArrayValue.map("%02x".format(_)).mkString(":").toUpperCase}'")
@@ -125,16 +121,18 @@ object PKCS11KeyExtractor extends App {
 
   }
 
-  private def importWrappingKey(session: Session, publicKey: java.security.interfaces.RSAPublicKey): RSAPublicKey = {
-    val publicKeyTemplate = new RSAPublicKey()
-    val modulus = iaik.pkcs.pkcs11.Util.unsignedBigIntergerToByteArray(publicKey.getModulus)
-    publicKeyTemplate.getModulus.setByteArrayValue(modulus)
-    val publicExponent = iaik.pkcs.pkcs11.Util.unsignedBigIntergerToByteArray(publicKey.getPublicExponent)
-    publicKeyTemplate.getPublicExponent.setByteArrayValue(publicExponent)
-    publicKeyTemplate.getToken.setBooleanValue(false)
-    publicKeyTemplate.getWrap.setValue(true)
-    publicKeyTemplate.getPrivate.setValue(false)
-    session.createObject(publicKeyTemplate).asInstanceOf[RSAPublicKey]
+  private def generateWrappingKey(session: Session): AESSecretKey = {
+    val keyMechanism = Mechanism.get(PKCS11Constants.CKM_AES_KEY_GEN)
+    val secretEncryptionKeyTemplate = new AESSecretKey()
+    secretEncryptionKeyTemplate.getValueLen().setLongValue(16.toLong)
+    secretEncryptionKeyTemplate.getEncrypt().setBooleanValue(true)
+    secretEncryptionKeyTemplate.getDecrypt().setBooleanValue(true)
+    secretEncryptionKeyTemplate.getPrivate().setBooleanValue(true)
+    secretEncryptionKeyTemplate.getSensitive().setBooleanValue(true)
+    secretEncryptionKeyTemplate.getExtractable().setBooleanValue(false)
+    secretEncryptionKeyTemplate.getWrap().setBooleanValue(true)
+    secretEncryptionKeyTemplate.getToken.setBooleanValue(false)
+    session.generateKey(keyMechanism, secretEncryptionKeyTemplate).asInstanceOf[AESSecretKey]
   }
 
   private def searchExtractableRSAPrivateKeys(session: Session, force: Boolean): mutable.ArrayBuffer[RSAPrivateKey] = {
@@ -156,12 +154,6 @@ object PKCS11KeyExtractor extends App {
     iterate
     session.findObjectsFinal()
     privateKeys
-  }
-
-  private def generateRSAKeypair(size: Int): KeyPair = {
-    val kpg = KeyPairGenerator.getInstance("RSA", "BC")
-    kpg.initialize(size)
-    kpg.generateKeyPair()
   }
 
   // Method to register a PKCS#11 module (i.e. a p11 library)
