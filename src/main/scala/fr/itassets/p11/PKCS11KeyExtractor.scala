@@ -21,7 +21,7 @@ object PKCS11KeyExtractor extends App {
   Security.addProvider(new BouncyCastleProvider())
 
   val parser = new OptionParser[PKCS11KeyExtractorConfig]("PKCS11KeyExtractor") {
-    head("PKCS11KeyExtractor", "0.9")
+    head("PKCS11KeyExtractor", "1.0")
     // Global Options
     opt[String]('l', "library") required() valueName ("\"PKCS#11 Library Path\"") action { (x, c) => c.copy(pkcs11Lib = x) } text ("PKCS#11 Module Library Path (required)")
     opt[Long]('s', "slot") required() valueName ("\"PKCS#11 Slot ID\"") action { (x, c) => c.copy(slotId = x) } validate { x => if (x >= 0) success else failure("Slot ID cannot be negative") } text ("PKCS#11 Slot ID (required)")
@@ -48,21 +48,21 @@ object PKCS11KeyExtractor extends App {
       // If test mode is enabled, generating test key pairs
       if (config.test) {
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE")
-        generateRSATestKeyPair(session, 2048, true, false, false)
+        generateRSATestKeyPair(session, 2048, "EXTRACTABLE_NOWRAP_NOUNWRAP", true, false, false)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE")
-        generateRSATestKeyPair(session, 2048, true, false, true)
+        generateRSATestKeyPair(session, 2048, "EXTRACTABLE_NOWRAP_UNWRAP", true, false, true)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE")
-        generateRSATestKeyPair(session, 2048, true, true, false)
+        generateRSATestKeyPair(session, 2048, "EXTRACTABLE_WRAP_NOUNWRAP", true, true, false)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: TRUE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE")
-        generateRSATestKeyPair(session, 2048, true, true, true)
+        generateRSATestKeyPair(session, 2048, "EXTRACTABLE_WRAP_UNWRAP", true, true, true)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: FALSE")
-        generateRSATestKeyPair(session, 2048, false, false, false)
+        generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_NOWRAP_NOUNWRAP", false, false, false)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: FALSE, CKA_UNWRAP: TRUE")
-        generateRSATestKeyPair(session, 2048, false, false, true)
+        generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_NOWRAP_UNWRAP", false, false, true)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: FALSE")
-        generateRSATestKeyPair(session, 2048, false, true, false)
+        generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_WRAP_NOUNWRAP", false, true, false)
         println(s"[*] Generating Test RSA key pair (CKA_EXTRACTABLE: FALSE, CKA_WRAP: TRUE, CKA_UNWRAP: TRUE")
-        generateRSATestKeyPair(session, 2048, false, true, true)
+        generateRSATestKeyPair(session, 2048, "NOEXTRACTABLE_WRAP_UNWRAP", false, true, true)
       }
 
       // Searching for private RSA key with CKA_EXTRACTABLE set to TRUE
@@ -134,7 +134,7 @@ object PKCS11KeyExtractor extends App {
     case None =>
   }
 
-  private def generateRSATestKeyPair(session: Session, keyLength: Long, exportable: Boolean, wrap: Boolean, unwrap: Boolean): Unit = {
+  private def generateRSATestKeyPair(session: Session, keyLength: Long, label: String, exportable: Boolean, wrap: Boolean, unwrap: Boolean): Unit = {
     val rsaPublicKeyTemplate = new RSAPublicKey()
     val rsaPrivateKeyTemplate = new RSAPrivateKey()
     val publicExponentBytes = Array[Byte](0x01, 0x00, 0x01) // 2^6 + 1
@@ -149,6 +149,7 @@ object PKCS11KeyExtractor extends App {
     rsaPublicKeyTemplate.getEncrypt.setBooleanValue(false)
     rsaPublicKeyTemplate.getWrap().setBooleanValue(wrap)
     rsaPublicKeyTemplate.getModifiable.setBooleanValue(false)
+    rsaPublicKeyTemplate.getLabel.setCharArrayValue(label.toCharArray)
 
     // Set the general attributes for the private key
     rsaPrivateKeyTemplate.getSensitive.setBooleanValue(true)
@@ -159,6 +160,7 @@ object PKCS11KeyExtractor extends App {
     rsaPrivateKeyTemplate.getUnwrap.setBooleanValue(unwrap)
     rsaPrivateKeyTemplate.getExtractable.setBooleanValue(exportable)
     rsaPrivateKeyTemplate.getModifiable.setBooleanValue(false)
+    rsaPrivateKeyTemplate.getLabel.setCharArrayValue(label.toCharArray)
 
     session.generateKeyPair(mechanism, rsaPublicKeyTemplate, rsaPrivateKeyTemplate)
 
