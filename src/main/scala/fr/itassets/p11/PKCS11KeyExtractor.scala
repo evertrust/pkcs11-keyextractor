@@ -92,17 +92,18 @@ object PKCS11KeyExtractor extends App {
             val clearKey = session.decrypt(wrappedKey)
 
             // Converting from PKCS8 to PKCS1
-            val pkcs8PrivateKeyParameters = PrivateKeyFactory.createKey(clearKey).asInstanceOf[RSAPrivateCrtKeyParameters]
-            val privateKeySpec = new RSAPrivateKeySpec(pkcs8PrivateKeyParameters.getModulus, pkcs8PrivateKeyParameters.getExponent)
-            val privateKey = KeyFactory.getInstance("RSA", "BC").generatePrivate(privateKeySpec)
+            //val pkcs8PrivateKeyParameters = PrivateKeyFactory.createKey(clearKey)//.asInstanceOf[RSAPrivateCrtKeyParameters]
+            //val privateKeySpec = new RSAPrivateKeySpec(pkcs8PrivateKeyParameters.getModulus, pkcs8PrivateKeyParameters.getExponent)
+            //val privateKey = KeyFactory.getInstance("RSA", "BC").generatePrivate(privateKeySpec)
 
             // Dumping Private Key in PEM format
             val stringWriter = new StringWriter()
             val pemWriter = new PemWriter(stringWriter)
-            val pemObject = new PemObject("RSA PRIVATE KEY", privateKey.getEncoded)
+            val pemObject = new PemObject("RSA PRIVATE KEY", clearKey)
+            pemWriter.writeObject(pemObject)
             pemWriter.flush()
             pemWriter.close()
-            println(s"Extracted Private Key:\n${stringWriter.toString}")
+            println(s"[*] Extracted Private Key:\n${stringWriter.toString}")
             stringWriter.close()
 
           } catch {
