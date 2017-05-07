@@ -1,7 +1,7 @@
 PKCS#11 Key Extractor
 =====================
 
-#Synopsis
+# Synopsis
 
 This tool allow extracting RSA private keys from [PKCS#11](http://docs.oasis-open.org/pkcs11/pkcs11-curr/v2.40/cs01/pkcs11-curr-v2.40-cs01.pdf) crypto devices (HSM, smartcard, token) when the CKA_EXTRACTABLE attribute is set to TRUE.
 
@@ -18,13 +18,13 @@ This tool is developped in Scala and uses the following Java libraries:
 * [BouncyCastle](https://www.bouncycastle.org/)
 * [IAIK PKCS#11 Wrapper](http://jcewww.iaik.tu-graz.ac.at/sic/Products/Core_Crypto_Toolkits/PKCS_11_Wrapper)
 
-#Prerequisites
+# Prerequisites
 
 To compile this tool you will need:
 * A JDK 8
 * sbt
 
-#Generating the tool
+# Generating the tool
 
 Clone the github repository:
 ```
@@ -39,7 +39,7 @@ sbt packageZipTarball
 
 The archive is available under **'target/universal/pkcs-11-key-extractor-1.0.tgz'**.
 
-#Installing the tool
+# Installing the tool
 
 Simply untar the archive:
 ```
