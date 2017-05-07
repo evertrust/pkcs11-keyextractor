@@ -1,7 +1,7 @@
 package fr.itassets.p11
 
 import java.io.StringWriter
-import java.security.Security
+import java.security.{KeyFactory, Security}
 
 import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants
@@ -83,7 +83,7 @@ object PKCS11KeyExtractor extends App {
             val wrappedKey = session.wrapKey(encryptionMechanism, wrappingKey, key)
 
             // Decrypting Wrapped Key
-            val decryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD);
+            val decryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD)
             val decryptInitializationVector = Array[Byte]( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             val decryptInitializationVectorParameters = new InitializationVectorParameters(decryptInitializationVector)
             decryptionMechanism.setParameters(decryptInitializationVectorParameters)
@@ -92,8 +92,7 @@ object PKCS11KeyExtractor extends App {
 
             // Converting from PKCS8 to PKCS1
             val pkcs8Key = PrivateKeyFactory.createKey(clearKey).asInstanceOf[RSAPrivateCrtKeyParameters]
-            
-
+            println(s"Bingo: ${pkcs8Key.toString}")
           } catch {
             case e: Exception => println(s"[!] Error extracting private key: '${e.getMessage}'")
           }
