@@ -1,12 +1,16 @@
 package fr.itassets.p11
 
+import java.io.StringWriter
 import java.security.Security
 
 import iaik.pkcs.pkcs11.objects.{AESSecretKey, RSAPrivateKey, RSAPublicKey}
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants
 import iaik.pkcs.pkcs11._
 import iaik.pkcs.pkcs11.parameters.InitializationVectorParameters
+import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
+import org.bouncycastle.crypto.util.PrivateKeyFactory
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.util.io.pem.PemWriter
 import scopt.OptionParser
 
 import scala.collection.mutable
@@ -86,7 +90,9 @@ object PKCS11KeyExtractor extends App {
             session.decryptInit(decryptionMechanism, wrappingKey)
             val clearKey = session.decrypt(wrappedKey)
 
-            // Converting from PKCS8 to PKCS1 
+            // Converting from PKCS8 to PKCS1
+            val pkcs8Key = PrivateKeyFactory.createKey(clearKey).asInstanceOf[RSAPrivateCrtKeyParameters]
+            
 
           } catch {
             case e: Exception => println(s"[!] Error extracting private key: '${e.getMessage}'")
